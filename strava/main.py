@@ -1,4 +1,4 @@
-# This is a sample Python script.
+# https://developers.strava.com/docs/reference/#api-Athletes-getStats
 import sys
 import auth
 import requests
@@ -36,9 +36,11 @@ class Athlete:
     sex = str
     premium = bool
 
+    stats = dict[str, dict[str, int]]
+
     def __init__(self):
         self.auth = auth.Auth()
-        self.auth.update_refresh_token()
+        self.auth.update_access_token()
 
         # r = requests.get(BASE_URL + ATHLETE_API, headers=conn.get_auth_bearer())
         # athlete_data = json.loads(r.text)
@@ -54,25 +56,27 @@ class Athlete:
         self.sex = athlete_data['sex']
         self.premium = athlete_data['premium']
 
-        self.stats = dict
+        self.stats = self.get(STATS_API.format(id=self.id))
 
     def get(self, api):
         r = requests.get(BASE_URL + api, headers=self.auth.get_auth_bearer())
         return json.loads(r.text)
 
     def get_stats(self):
-        self.stats = self.get(STATS_API.format(id=self.id))
         print(f"All time distance:    {self.stats['all_run_totals']['distance']/METER_TO_MILE_CONVERSION} miles")
         print(f"YTD time distance:    {self.stats['ytd_run_totals']['distance']/METER_TO_MILE_CONVERSION} miles")
         print(f"Recent time distance: {self.stats['recent_run_totals']['distance']/METER_TO_MILE_CONVERSION} miles")
+        print(self.stats['ytd_run_totals'])
 
     def daily_mileage_needed(self):
-        print(f"Current mileage: {self.stats['ytd_run_totals']['distance']/METER_TO_MILE_CONVERSION}")
         days_remaining = (GOAL_DATE - date.today()).days
         miles_to_goal = GOAL_MILEAGE*METER_TO_MILE_CONVERSION - self.stats['ytd_run_totals']['distance']
+        print(f"Current mileage: {self.stats['ytd_run_totals']['distance']/METER_TO_MILE_CONVERSION}")
         print(f"Remaining miles: {miles_to_goal/METER_TO_MILE_CONVERSION}")
         print(f"Days remaining: {days_remaining}")
-        print(f"Miles per day: {miles_to_goal/days_remaining/METER_TO_MILE_CONVERSION}")
+        meters_per_day = miles_to_goal/days_remaining
+        print(f"Miles per day:  {meters_per_day/METER_TO_MILE_CONVERSION}")
+        print(f"Miles per week: {meters_per_day*7/METER_TO_MILE_CONVERSION}")
 
     def __str__(self):
         return f"{self.username} ({self.firstname} {self.lastname}): {self.id}"
@@ -82,12 +86,6 @@ def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
     print(sys.version)
-
-
-# def get_user_data(conn):
-#     r = requests.get(BASE_URL+ATHLETE_API, headers=conn.get_auth_bearer())
-#     user = Athlete(json.loads(r.text))
-#     return user
 
 
 # Press the green button in the gutter to run the script.

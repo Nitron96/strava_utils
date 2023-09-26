@@ -44,14 +44,12 @@ class Auth:
             "grant_type": "refresh_token"
         }
 
-    def set_refresh_token(self, refresh_token):
-        self.tokens["refresh_token"] = refresh_token
-        self.write_auth()
-
-    def update_refresh_token(self):
+    def update_access_token(self):
         r = requests.post(REFRESH_URL, data=self.get_refresh_dict())
-        print(json.loads(r.text))
-        self.set_refresh_token(json.loads(r.text)["refresh_token"])
+        response = json.loads(r.text)
+        self.tokens["access_token"] = response["access_token"]
+        self.tokens["refresh_token"] = response["refresh_token"]
+        self.write_auth()
 
     def get_auth_bearer(self):
         return {"Authorization": f"Bearer {self.tokens['access_token']}"}
