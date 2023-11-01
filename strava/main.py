@@ -14,12 +14,22 @@ GOAL_DATE = date(2023, 12, 31)
 BASE_URL = "https://www.strava.com/api/v3"
 ATHLETE_API = "/athlete"
 STATS_API = "/athletes/{id}/stats"
+STARRED_SEGMENTS = "/segments/starred"
 
 
-METER_TO_MILE_CONVERSION = 1609.344
+METER_TO_MILE = 1609.344
+METER_TO_KM = 1000
 
 RUN_STATS = {"recent_run_totals", "all_run_totals", "ytd_run_totals"}
 RUN_SUB_STATS = {"count", "distance", "moving_time", "elapsed_time", "elevation_gain"}
+
+
+def to_rounded_miles(distance):
+    return round(distance/METER_TO_MILE, 1)
+
+
+def distance_str(distance):
+    return f"{to_rounded_miles(distance)} mi ({distance/METER_TO_KM} km)"
 
 
 class Athlete:
@@ -63,23 +73,31 @@ class Athlete:
         return json.loads(r.text)
 
     def get_stats(self):
-        print(f"All time distance:    {self.stats['all_run_totals']['distance']/METER_TO_MILE_CONVERSION} miles")
-        print(f"YTD time distance:    {self.stats['ytd_run_totals']['distance']/METER_TO_MILE_CONVERSION} miles")
-        print(f"Recent time distance: {self.stats['recent_run_totals']['distance']/METER_TO_MILE_CONVERSION} miles")
+        print(f"All time distance:    {distance_str(self.stats['all_run_totals']['distance'])} miles")
+        print(f"YTD time distance:    {distance_str(self.stats['ytd_run_totals']['distance'])} miles")
+        print(f"Recent time distance: {distance_str(self.stats['recent_run_totals']['distance'])} miles")
         print(self.stats['ytd_run_totals'])
+        print("----------------------------------------------\n")
 
     def daily_mileage_needed(self):
         days_remaining = (GOAL_DATE - date.today()).days
-        miles_to_goal = GOAL_MILEAGE*METER_TO_MILE_CONVERSION - self.stats['ytd_run_totals']['distance']
-        print(f"Current mileage: {self.stats['ytd_run_totals']['distance']/METER_TO_MILE_CONVERSION}")
-        print(f"Remaining miles: {miles_to_goal/METER_TO_MILE_CONVERSION}")
-        print(f"Days remaining: {days_remaining}")
+        miles_to_goal = GOAL_MILEAGE*METER_TO_MILE - self.stats['ytd_run_totals']['distance']
+        print(f"Current mileage: {distance_str(self.stats['ytd_run_totals']['distance'])}")
+        print(f"Remaining miles: {distance_str(miles_to_goal)}")
+        print(f"Days remaining:  {days_remaining} ({round(days_remaining/7, 1)} weeks)")
         meters_per_day = miles_to_goal/days_remaining
-        print(f"Miles per day:  {meters_per_day/METER_TO_MILE_CONVERSION}")
-        print(f"Miles per week: {meters_per_day*7/METER_TO_MILE_CONVERSION}")
+        print(f"Miles per day:   {round(meters_per_day/METER_TO_MILE, 1)}")
+        print(f"Miles per week:  {round(meters_per_day*7/METER_TO_MILE, 1)}")
+
+    def get_starred_segments(self):
+        for segment in self.get(STARRED_SEGMENTS):
+            print(f"{segment['name']}: {segment['id']}")
+            if "athlete_pr_effort" in segment:
+                print(f"(PR id: {segment['athlete_pr_effort']['id']}, PR activity_id: "
+                      f"{segment['athlete_pr_effort']['activity_id']})")
 
     def __str__(self):
-        return f"{self.username} ({self.firstname} {self.lastname}): {self.id}"
+        return f"{self.firstname} {self.lastname} ({self.username}): {self.id}"
 
 
 def print_hi(name):
@@ -97,5 +115,6 @@ if __name__ == '__main__':
     print(athlete)
     athlete.get_stats()
     athlete.daily_mileage_needed()
+    # athlete.get_starred_segments()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
