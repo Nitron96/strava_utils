@@ -2,8 +2,9 @@ import json
 import requests
 
 
-AUTHORIZE_URL = "http://www.strava.com/oauth/authorize?client_id={" \
-                "}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=read "
+AUTHORIZE_URL = "https://www.strava.com/oauth/authorize?client_id={" \
+                "}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&" \
+                "scope=read,read_all,profile:read_all,activity:read,activity:read_all"
 
 OATH_URL = "https://www.strava.com/oauth/token"
 REFRESH_URL = "https://www.strava.com/api/v3/oauth/token"
@@ -36,6 +37,15 @@ class Auth:
             "grant_type": "authorization_code"
         }
 
+    # Apparently needs to be done when permissions change
+    def update_auth(self):
+        r = requests.post(OATH_URL, data=self.get_auth_dict())
+        response = json.loads(r.text)
+        print(response)
+        self.tokens["access_token"] = response["access_token"]
+        self.tokens["refresh_token"] = response["refresh_token"]
+        self.write_auth()
+
     def get_refresh_dict(self):
         return {
             "client_id": self.tokens["client_id"],
@@ -53,3 +63,9 @@ class Auth:
 
     def get_auth_bearer(self):
         return {"Authorization": f"Bearer {self.tokens['access_token']}"}
+
+
+# Needs to be run from here when authorizing new permissions for the app
+if __name__ == '__main__':
+    auth = Auth()
+    auth.update_auth()

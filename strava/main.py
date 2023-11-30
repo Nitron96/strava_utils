@@ -16,6 +16,9 @@ ATHLETE_API = "/athlete"
 STATS_API = "/athletes/{id}/stats"
 STARRED_SEGMENTS = "/segments/starred"
 
+ACTIVITY_LIST = "/athlete/activities"
+ACTIVITIES_PER_PAGE = 100
+
 
 METER_TO_MILE = 1609.344
 METER_TO_KM = 1000
@@ -68,15 +71,33 @@ class Athlete:
 
         self.stats = self.get(STATS_API.format(id=self.id))
 
+    def get_activities(self):
+        activity_count = ACTIVITIES_PER_PAGE  # Start loop with "max" activities per page
+        page_count = 0
+        activities = []
+        while activity_count == ACTIVITIES_PER_PAGE and page_count < 10:
+            page_count += 1
+            activity_page = self.get(ACTIVITY_LIST + f"?per_page={ACTIVITIES_PER_PAGE}&page={page_count}")
+            activity_count = len(activity_page)  # Don't loop after there are less activities remaining
+            activities.extend(activity_page)
+            print(f"found {len(activities)} activities so far, {len(activity_page)} this page")
+        print(f"Found a total of {len(activities)} activities, writing to json file.")
+        with open("../activities.json", 'w') as f:
+            json.dump(activities, f)
+
     def get(self, api):
         r = requests.get(BASE_URL + api, headers=self.auth.get_auth_bearer())
-        return json.loads(r.text)
+        if r.status_code == 200:
+            return json.loads(r.text)
+        else:
+            print(r.status_code)
+            return json.loads(r.text)
 
     def get_stats(self):
         print(f"All time distance:    {distance_str(self.stats['all_run_totals']['distance'])} miles")
         print(f"YTD time distance:    {distance_str(self.stats['ytd_run_totals']['distance'])} miles")
         print(f"Recent time distance: {distance_str(self.stats['recent_run_totals']['distance'])} miles")
-        print(self.stats['ytd_run_totals'])
+        # print(self.stats['ytd_run_totals'])
         print("----------------------------------------------\n")
 
     def daily_mileage_needed(self):
@@ -100,21 +121,19 @@ class Athlete:
         return f"{self.firstname} {self.lastname} ({self.username}): {self.id}"
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-    print(sys.version)
+def print_stats(athlete):
+    athlete.get_stats()
+    athlete.daily_mileage_needed()
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
     # conn = auth.Auth()
     # conn.update_refresh_token()
     athlete = Athlete()
     print(athlete)
-    athlete.get_stats()
-    athlete.daily_mileage_needed()
-    # athlete.get_starred_segments()
+    print_stats(athlete)
+
+    # athlete.get_activities()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

@@ -1,3 +1,5 @@
 auth.json
 venv
 .idea
+strava/response.json
+activities.json
