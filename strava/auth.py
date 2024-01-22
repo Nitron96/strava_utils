@@ -1,5 +1,6 @@
 import json
 import requests
+import strava_cache as caching
 
 
 AUTHORIZE_URL = "https://www.strava.com/oauth/authorize?client_id={" \
@@ -8,6 +9,8 @@ AUTHORIZE_URL = "https://www.strava.com/oauth/authorize?client_id={" \
 
 OATH_URL = "https://www.strava.com/oauth/token"
 REFRESH_URL = "https://www.strava.com/api/v3/oauth/token"
+
+BASE_URL = "https://www.strava.com/api/v3"
 
 
 class Auth:
@@ -63,6 +66,30 @@ class Auth:
 
     def get_auth_bearer(self):
         return {"Authorization": f"Bearer {self.tokens['access_token']}"}
+
+    def get(self, api, cache=False, _first_attempt=True):
+        cache_identifier = api
+        # If caching is enabled for this request, check if it exists and load it
+        # print(caching.cache_hash(cache_identifier))
+        if cache and caching.check(cache_identifier):
+            return caching.load(cache_identifier)
+        r = requests.get(BASE_URL + api, headers=self.get_auth_bearer())
+        if r.status_code == 200:
+            response = json.loads(r.text)
+            # If caching is enabled for this request, save contents to cache
+            if cache:
+                caching.save(cache_identifier, response)
+            return response
+        elif _first_attempt and r.status_code == 401:
+            print(f"Status code: {r.status_code}, attempting to refresh auth")
+            self.update_access_token()
+            return self.get(api, cache, _first_attempt=False)
+        elif r.status_code == 429:
+            print(f"Status code: {r.status_code}, API limits hit")
+        else:
+            print(f"Status code: {r.status_code}")
+        print(f"API call:    {api}")
+        return json.loads(r.text)
 
 
 # Needs to be run from here when authorizing new permissions for the app

@@ -3,3 +3,4 @@ venv
 .idea
 strava/response.json
 activities.json
+strava/cache
