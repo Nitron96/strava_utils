@@ -1,8 +1,7 @@
 from datetime import date, timedelta
-import os
 import folium
 import activity
-from main import Athlete
+from athlete import Athlete
 from conversions import convert_speed, convert_distance, convert_elevation
 
 

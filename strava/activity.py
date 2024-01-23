@@ -1,4 +1,3 @@
-import json
 from datetime import timedelta
 import auth
 from conversions import convert_speed, convert_distance, convert_elevation

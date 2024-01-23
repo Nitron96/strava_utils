@@ -1,7 +1,5 @@
 # https://developers.strava.com/docs/reference/#api-Athletes-getStats
-import sys
 import auth
-import requests
 import json
 from datetime import date, datetime
 
