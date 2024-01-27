@@ -1,7 +1,9 @@
 # https://developers.strava.com/docs/reference/#api-Athletes-getStats
-from utils.base import StravaBaseClass
 import json
+import logging
 from datetime import date, datetime
+
+from utils.base import StravaBaseClass
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -12,7 +14,6 @@ GOAL_DATE = date(date.today().year, 12, 31)
 BASE_URL = "https://www.strava.com/api/v3"
 ATHLETE_API = "/athlete"
 STATS_API = "/athletes/{id}/stats"
-STARRED_SEGMENTS = "/segments/starred"
 
 ACTIVITY_LIST = "/athlete/activities"
 ACTIVITIES_PER_PAGE = 100
@@ -52,13 +53,7 @@ class Athlete(StravaBaseClass):
     def __init__(self):
         super().__init__()
 
-        # IF AUTH BROKEN TRY THIS!!!
-        # self.auth.update_access_token()
-
-        # r = requests.get(BASE_URL + ATHLETE_API, headers=conn.get_auth_bearer())
-        # athlete_data = json.loads(r.text)
         athlete_data = self.get(ATHLETE_API, cache=True)
-        # print(self.auth)
 
         self.id = athlete_data['id']
         self.username = athlete_data['username']
@@ -81,10 +76,11 @@ class Athlete(StravaBaseClass):
             activity_page = self.get(ACTIVITY_LIST + f"?per_page={ACTIVITIES_PER_PAGE}&page={page_count}")
             activity_count = len(activity_page)  # Don't loop after there are less activities remaining
             activities.extend(activity_page)
-            print(f"found {len(activities)} activities so far, {len(activity_page)} this page")
-        print(f"Found a total of {len(activities)} activities, writing to json file.")
-        with open("../activities.json", 'w') as f:
-            json.dump(activities, f)
+            logging.info(f"found {len(activities)} activities so far, {len(activity_page)} this page")
+        logging.info(f"Found a total of {len(activities)} activities.")
+        # logging.info(f"Found a total of {len(activities)} activities, writing to json file.")
+        # with open("../activities.json", 'w') as f:
+        #     json.dump(activities, f)
 
     def get_activities_month(self, month, year, activity_filter=None):
         if activity_filter is None:
@@ -108,8 +104,8 @@ class Athlete(StravaBaseClass):
             )
             activity_count = len(activity_page)  # Don't loop after there are less activities remaining
             activities.extend(activity_page)
-            print(f"found {len(activities)} activities so far, {len(activity_page)} this page")
-        print(f"Found a total of {len(activities)} activities for {month}-{year}")
+            logging.info(f"found {len(activities)} activities so far, {len(activity_page)} this page")
+        logging.info(f"Found a total of {len(activities)} activities for {month}-{year}")
         # print(f"Found a total of {len(activities)} activities for {month}-{year}, writing to json file.")
         # with open(f"../activities_{month}_{year}.json", 'w') as f:
         #     json.dump(activities, f)
@@ -121,28 +117,20 @@ class Athlete(StravaBaseClass):
         return activities
 
     def get_stats(self):
-        print(f"All time distance:    {distance_str(self.stats['all_run_totals']['distance'])}")
-        print(f"Year to Date:         {distance_str(self.stats['ytd_run_totals']['distance'])}")
-        print(f"Recent time distance: {distance_str(self.stats['recent_run_totals']['distance'])}")
+        logging.info(f"All time distance:    {distance_str(self.stats['all_run_totals']['distance'])}")
+        logging.info(f"Year to Date:         {distance_str(self.stats['ytd_run_totals']['distance'])}")
+        logging.info(f"Recent time distance: {distance_str(self.stats['recent_run_totals']['distance'])}")
         # print(self.stats['ytd_run_totals'])
-        print("----------------------------------------------\n")
 
     def daily_mileage_needed(self):
         days_remaining = (GOAL_DATE - date.today()).days
         miles_to_goal = GOAL_MILEAGE*METER_TO_MILE - self.stats['ytd_run_totals']['distance']
-        print(f"Current mileage: {distance_str(self.stats['ytd_run_totals']['distance'])}")
-        print(f"Remaining miles: {distance_str(miles_to_goal)}")
-        print(f"Days remaining:  {days_remaining} ({round(days_remaining/7, 1)} weeks)")
+        logging.info(f"Current mileage: {distance_str(self.stats['ytd_run_totals']['distance'])}")
+        logging.info(f"Remaining miles: {distance_str(miles_to_goal)}")
+        logging.info(f"Days remaining:  {days_remaining} ({round(days_remaining/7, 1)} weeks)")
         meters_per_day = miles_to_goal/days_remaining
-        print(f"Miles per day:   {round(meters_per_day/METER_TO_MILE, 1)}")
-        print(f"Miles per week:  {round(meters_per_day*7/METER_TO_MILE, 1)}")
-
-    def get_starred_segments(self):
-        for segment in self.get(STARRED_SEGMENTS):
-            print(f"{segment['name']}: {segment['id']}")
-            if "athlete_pr_effort" in segment:
-                print(f"(PR id: {segment['athlete_pr_effort']['id']}, PR activity_id: "
-                      f"{segment['athlete_pr_effort']['activity_id']})")
+        logging.info(f"Miles per day:   {round(meters_per_day/METER_TO_MILE, 1)}")
+        logging.info(f"Miles per week:  {round(meters_per_day*7/METER_TO_MILE, 1)}")
 
     def __str__(self):
         return f"{self.firstname} {self.lastname} ({self.username}): {self.id}"
@@ -158,7 +146,7 @@ if __name__ == '__main__':
     # conn = auth.Auth()
     # conn.update_refresh_token()
     athlete = Athlete()
-    print(athlete)
+    logging.info(athlete)
     print_stats(athlete)
 
     # athlete.get_activities()

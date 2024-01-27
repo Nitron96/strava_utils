@@ -83,6 +83,7 @@ class Auth:
         if cache and caching.check(cache_identifier):
             return caching.load(cache_identifier)
         if self.request_count >= REQUEST_LIMIT:
+            logging.error(f"Rate limit hit, throwing exception")
             raise RateLimitError
         r = requests.get(BASE_URL + api, headers=self.get_auth_bearer())
         if r.status_code == 200:
@@ -93,15 +94,14 @@ class Auth:
                 caching.save(cache_identifier, response)
             return response
         elif _first_attempt and r.status_code == 401:
-            print(f"Status code: {r.status_code}, attempting to refresh auth")
+            logging.warning(f"Status code: {r.status_code}, attempting to refresh auth")
             self.update_access_token()
             return self.get(api, cache, _first_attempt=False)
         elif r.status_code == 429:
             self.request_count = REQUEST_LIMIT
-            print(f"Status code: {r.status_code}, API limits hit")
+            logging.warning(f"Status code: {r.status_code}, API limits hit\nAPI call:    {api}")
         else:
-            print(f"Status code: {r.status_code}")
-        print(f"API call:    {api}")
+            logging.error(f"Status code: {r.status_code}\nAPI call:    {api}")
         return json.loads(r.text)
 
 

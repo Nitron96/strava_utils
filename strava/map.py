@@ -1,9 +1,11 @@
 from datetime import date, timedelta
+
 import folium
+import logging
+
 import activity
 from athlete import Athlete
 from utils.conversions import convert_speed, convert_distance, convert_elevation
-
 
 STRAVA_ACTIVITY_URL = "https://www.strava.com/activities/{id}"
 
@@ -19,14 +21,14 @@ POPUP_HTML = """
 
 def line_color(start_date):
     # hex_color = hex(int((365 - (date.today() - date.fromisoformat(start_date[:10])).days)/365*16777215))
-    # print(hex_color)
+    # logging.info(hex_color)
     # return f'#{str(hex_color)[2:]}'
     hex_color = hex(int((date.today() - date.fromisoformat(start_date[:10])).days/365*16777215))
     int_color = int((date.today() - date.fromisoformat(start_date[:10])).days/365*16777215)
     int_color_red = (255 << 16) - int_color
     int_color_tint = int_color + (255 << 4) + (255 << 12)
     # int_color_red = 255 - (int_color >> 16) & 255
-    # print(f"{int_color:#0{8}x}"[2:])
+    # logging.info(f"{int_color:#0{8}x}"[2:])
     # return f'#{str(hex_color)[2:]}'
     return '#'+f"{int_color_tint:#0{8}x}"[2:]
 
@@ -50,17 +52,17 @@ class Map:
             path.add_child(folium.Popup(popup, max_width=250))
 
     def save(self, filename="test.html"):
-        print(f"Writing map to file: {filename}")
+        logging.info(f"Writing map to file: {filename}")
         self.m.save(filename)
-        print("Done writing file")
+        logging.info("Done writing file: {filename}")
 
 
 def map_months(months, year=2023, activity_filter=None):
     if activity_filter is None:
         activity_filter = []
-    print("getting athlete")
+    logging.info("getting athlete")
     athlete = Athlete()
-    print("got athlete")
+    logging.info("got athlete")
     activity_list = []
     for month in months:
         for act in athlete.get_activities_month(month, year):
@@ -86,7 +88,7 @@ def map_months(months, year=2023, activity_filter=None):
             elevation=convert_elevation(a.total_elevation_gain)
         )
         if 'latlng' in streams.keys():
-            print(f"  Adding {a.full_activity['name']} to map")
+            logging.info(f"  Adding {a.full_activity['name']} to map")
             map_obj.add_line(
                 streams['latlng']['data'],
                 "#af5800",
@@ -97,7 +99,7 @@ def map_months(months, year=2023, activity_filter=None):
                 popup=popup_contents
             )
         else:
-            print(f"Skipping {a.full_activity['name']} as no 'latlng'")
+            logging.info(f"Skipping {a.full_activity['name']} as no 'latlng'")
 
     map_obj.save(f"{year}.html")
 
@@ -110,7 +112,7 @@ if __name__ == '__main__':
     #     activities.append(activity.Activity(a_id))
     # map_obj = Map(activities[0].full_activity['start_latlng'])
     # for a in activities:
-    #     print(f"adding {a.full_activity['name']}")
+    #     logging.info(f"adding {a.full_activity['name']}")
     #     # map_obj.add_line(
     #     #     a.get_activity_streams(),
     #     #     line_color(a.full_activity['start_date_local']),

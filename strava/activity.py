@@ -1,4 +1,5 @@
 from datetime import timedelta
+import logging
 from utils.base import StravaBaseClass
 from utils.conversions import convert_speed, convert_distance, convert_elevation
 
@@ -80,9 +81,9 @@ class Activity(StravaBaseClass):
 
     def get_laps(self):
         self.laps = self.get(ACTIVITY_LAPS.format(id=self.id))
-        print(self.laps[0])
+        logging.debug(self.laps[0])
         for lap in self.laps:
-            print(f"{convert_distance(lap['distance'])} miles, {convert_elevation(lap['total_elevation_gain'])} feet")
+            logging.info(f"{convert_distance(lap['distance'])} miles, {convert_elevation(lap['total_elevation_gain'])} feet")
 
     # def get_activity(self):
     #     self.full_activity = self.get(ACTIVITY.format(id=self.id), cache=True)
