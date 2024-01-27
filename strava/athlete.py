@@ -1,5 +1,5 @@
 # https://developers.strava.com/docs/reference/#api-Athletes-getStats
-import auth
+from utils.base import StravaBaseClass
 import json
 from datetime import date, datetime
 
@@ -33,11 +33,11 @@ def distance_str(distance):
     return f"{to_rounded_miles(distance)} mi ({distance/METER_TO_KM} km)"
 
 
-class Athlete:
+class Athlete(StravaBaseClass):
 
-    auth = auth.Auth()
+    # auth = auth.Auth()
 
-    id: int
+    # id: int
     # username = str
     # firstname = str
     # lastname = str
@@ -50,14 +50,15 @@ class Athlete:
     # stats = dict[str, dict[str, int]]
 
     def __init__(self):
-        # self.auth = auth.Auth()
+        super().__init__()
 
         # IF AUTH BROKEN TRY THIS!!!
         # self.auth.update_access_token()
 
         # r = requests.get(BASE_URL + ATHLETE_API, headers=conn.get_auth_bearer())
         # athlete_data = json.loads(r.text)
-        athlete_data = self.auth.get(ATHLETE_API, cache=True)
+        athlete_data = self.get(ATHLETE_API, cache=True)
+        # print(self.auth)
 
         self.id = athlete_data['id']
         self.username = athlete_data['username']
@@ -69,7 +70,7 @@ class Athlete:
         self.sex = athlete_data['sex']
         self.premium = athlete_data['premium']
 
-        self.stats = self.auth.get(STATS_API.format(id=self.id))
+        self.stats = self.get(STATS_API.format(id=self.id))
 
     def get_activities(self):
         activity_count = ACTIVITIES_PER_PAGE  # Start loop with "max" activities per page
@@ -77,7 +78,7 @@ class Athlete:
         activities = []
         while activity_count == ACTIVITIES_PER_PAGE and page_count < 10:
             page_count += 1
-            activity_page = self.auth.get(ACTIVITY_LIST + f"?per_page={ACTIVITIES_PER_PAGE}&page={page_count}")
+            activity_page = self.get(ACTIVITY_LIST + f"?per_page={ACTIVITIES_PER_PAGE}&page={page_count}")
             activity_count = len(activity_page)  # Don't loop after there are less activities remaining
             activities.extend(activity_page)
             print(f"found {len(activities)} activities so far, {len(activity_page)} this page")
@@ -99,7 +100,7 @@ class Athlete:
         activities = []
         while activity_count == ACTIVITIES_PER_PAGE and page_count < 10:    # page limit in case api limits
             page_count += 1
-            activity_page = self.auth.get(
+            activity_page = self.get(
                 ACTIVITY_LIST + f"?per_page={ACTIVITIES_PER_PAGE}&page={page_count}&"
                                 f"before={end}&after={start}",
                 # If year and month are different than today's date, we can cache the request
@@ -137,7 +138,7 @@ class Athlete:
         print(f"Miles per week:  {round(meters_per_day*7/METER_TO_MILE, 1)}")
 
     def get_starred_segments(self):
-        for segment in self.auth.get(STARRED_SEGMENTS):
+        for segment in self.get(STARRED_SEGMENTS):
             print(f"{segment['name']}: {segment['id']}")
             if "athlete_pr_effort" in segment:
                 print(f"(PR id: {segment['athlete_pr_effort']['id']}, PR activity_id: "

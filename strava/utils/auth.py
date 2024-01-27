@@ -1,7 +1,11 @@
 import json
 import requests
-import strava_cache as caching
+import logging
 
+from . import strava_cache as caching
+
+
+REQUEST_LIMIT = 10  # Limit to 10 requests to strava api per run to avoid api limits
 
 AUTHORIZE_URL = "https://www.strava.com/oauth/authorize?client_id={" \
                 "}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&" \
@@ -13,12 +17,18 @@ REFRESH_URL = "https://www.strava.com/api/v3/oauth/token"
 BASE_URL = "https://www.strava.com/api/v3"
 
 
+class RateLimitError(Exception):
+    pass
+
+
 class Auth:
 
-    tokens = {}
+    auths = []
 
-    def __init__(self):
-        self.get_auth()
+    def __init__(self, athlete_id=0):
+        self.auths.append(len(self.auths)+1)
+        logging.info(f"Internal auth obj: {self.auths}")
+        self.request_count = 0
         with open("../auth.json") as f:
             self.tokens = json.load(f)
 
@@ -44,7 +54,6 @@ class Auth:
     def update_auth(self):
         r = requests.post(OATH_URL, data=self.get_auth_dict())
         response = json.loads(r.text)
-        print(response)
         self.tokens["access_token"] = response["access_token"]
         self.tokens["refresh_token"] = response["refresh_token"]
         self.write_auth()
@@ -73,8 +82,11 @@ class Auth:
         # print(caching.cache_hash(cache_identifier))
         if cache and caching.check(cache_identifier):
             return caching.load(cache_identifier)
+        if self.request_count >= REQUEST_LIMIT:
+            raise RateLimitError
         r = requests.get(BASE_URL + api, headers=self.get_auth_bearer())
         if r.status_code == 200:
+            self.request_count += 1
             response = json.loads(r.text)
             # If caching is enabled for this request, save contents to cache
             if cache:
@@ -85,6 +97,7 @@ class Auth:
             self.update_access_token()
             return self.get(api, cache, _first_attempt=False)
         elif r.status_code == 429:
+            self.request_count = REQUEST_LIMIT
             print(f"Status code: {r.status_code}, API limits hit")
         else:
             print(f"Status code: {r.status_code}")

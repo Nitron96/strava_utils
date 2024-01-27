@@ -2,7 +2,7 @@ from datetime import date, timedelta
 import folium
 import activity
 from athlete import Athlete
-from conversions import convert_speed, convert_distance, convert_elevation
+from utils.conversions import convert_speed, convert_distance, convert_elevation
 
 
 STRAVA_ACTIVITY_URL = "https://www.strava.com/activities/{id}"
@@ -58,7 +58,9 @@ class Map:
 def map_months(months, year=2023, activity_filter=None):
     if activity_filter is None:
         activity_filter = []
+    print("getting athlete")
     athlete = Athlete()
+    print("got athlete")
     activity_list = []
     for month in months:
         for act in athlete.get_activities_month(month, year):

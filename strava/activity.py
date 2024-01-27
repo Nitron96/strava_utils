@@ -1,6 +1,6 @@
 from datetime import timedelta
-import auth
-from conversions import convert_speed, convert_distance, convert_elevation
+from utils.base import StravaBaseClass
+from utils.conversions import convert_speed, convert_distance, convert_elevation
 
 
 ACTIVITY_LAPS = "/activities/{id}/laps"
@@ -54,17 +54,16 @@ def decode_polyline(polyline):
     return points
 
 
-class Activity:
-
-    get = auth.Auth().get
+class Activity(StravaBaseClass):
 
     def __init__(self, activity_id):
+        super().__init__()
         self.id = activity_id
         # self.laps = dict()
         # self.full_activity = dict()
         # self.laps = list()
         # self.get_activity()
-        self.full_activity = self.get(ACTIVITY.format(id=self.id), cache=True)
+        self.full_activity = self.get(ACTIVITY.format(id=self.id), True)
         self.laps = self.full_activity['laps']
         self.name = self.full_activity['name']
         self.distance = self.full_activity['distance']
@@ -78,7 +77,6 @@ class Activity:
         self.description = self.full_activity['description']
         self.similar_activities = self.full_activity['similar_activities']
         self.available_zones = self.full_activity['available_zones']  # No idea what this is yet
-
 
     def get_laps(self):
         self.laps = self.get(ACTIVITY_LAPS.format(id=self.id))
@@ -234,11 +232,11 @@ class Activity:
 
 
 if __name__ == '__main__':
-    pass
-    # a = Activity(ACTIVITY_ID)
+    # pass
+    a = Activity(10597697833)
     # a.get_summary()
     # a.get_activity()
-    # a.print_activity()
+    a.print_activity()
     # a.get_segment_efforts(1039762) # Lake loop segment
     # a.get_segment(1039762)
     # a.get_activity_streams()
