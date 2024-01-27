@@ -27,7 +27,7 @@ class Auth:
 
     def __init__(self, athlete_id=0):
         self.auths.append(len(self.auths)+1)
-        logging.info(f"Internal auth obj: {self.auths}")
+        logging.debug(f"Internal auth obj: {self.auths}")
         self.request_count = 0
         with open("../auth.json") as f:
             self.tokens = json.load(f)

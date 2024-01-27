@@ -54,7 +54,7 @@ class Map:
     def save(self, filename="test.html"):
         logging.info(f"Writing map to file: {filename}")
         self.m.save(filename)
-        logging.info("Done writing file: {filename}")
+        logging.info(f"Done writing file: {filename}")
 
 
 def map_months(months, year=2023, activity_filter=None):

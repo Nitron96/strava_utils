@@ -6,12 +6,17 @@ import map
 import activity
 
 
-run = 'athlete'
+# run = 'athlete'
+run = 'map'
+# run = 'activity'
 
+DEFAULT_LOG_LEVEL = logging.INFO
 
-LOG_LEVEL = getattr(logging, os.environ["LOG_LEVEL"].upper()) if "LOG_LEVEL" in os.environ.keys() else logging.INFO
+LOG_LEVEL = getattr(logging, os.environ["LOG_LEVEL"].upper()) \
+        if "LOG_LEVEL" in os.environ.keys() else \
+        DEFAULT_LOG_LEVEL
 
-logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s', level=LOG_LEVEL)
+logging.basicConfig(format='[%(levelname)s]  %(asctime)s:  %(message)s', level=LOG_LEVEL)
 
 if run == 'athlete':
     # conn = auth.Auth()
