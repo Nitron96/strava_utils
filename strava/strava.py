@@ -4,11 +4,13 @@ import os
 import athlete
 import map
 import activity
+import segment
 
 
 # run = 'athlete'
 run = 'map'
 # run = 'activity'
+# run = 'segment'
 
 DEFAULT_LOG_LEVEL = logging.INFO
 
@@ -26,17 +28,22 @@ if run == 'athlete':
     athlete.print_stats(a)
 
 if run == 'map':
-    # map_months(range(1, 13), year=2023, activity_filter=["Run"])
-    map.map_months([1], year=2024, activity_filter=["Run"])
+    # map.map_months(range(1, 13), year=2023, activity_filter=["Run"])
+    map.map_months(1, year=2024, activity_filter=["Run"])
 
 if run == 'activity':
     # a = activity.Activity(ACTIVITY_ID)
     # a.get_summary()
     # a.get_activity()
     # a.print_activity()
+    # a.get_activity_streams()
+    pass
+
+if run == 'segment':
+    s = segment.Segment()
+    s.get_segment(1039762)
     # a.get_segment_efforts(1039762) # Lake loop segment
     # a.get_segment(1039762)
-    # a.get_activity_streams()
     pass
 
 if __name__ == '__main__':
