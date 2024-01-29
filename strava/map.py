@@ -60,6 +60,8 @@ class Map:
 def map_months(months, year=2023, activity_filter=None):
     if activity_filter is None:
         activity_filter = []
+    if type(months) is not list:
+        months = [months]
     logging.info("getting athlete")
     athlete = Athlete()
     logging.info("got athlete")
