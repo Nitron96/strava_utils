@@ -21,11 +21,29 @@ class RateLimitError(Exception):
     pass
 
 
+class ManageAuth:
+
+    _auths = {}
+
+    def get_auth(self, athlete_id):
+        if athlete_id not in self._auths.keys():
+            self._auths[athlete_id] = Auth()
+        elif not athlete_id:
+            self._auths[athlete_id] = Auth()
+        return self._auths[athlete_id]
+
+    def register_auth(self, athlete_id, auth_obj):
+        self._auths[athlete_id] = auth_obj
+
+    def log_auths(self):
+        logging.debug(f"List of auth objects: {self._auths}")
+
+
 class Auth:
 
     auths = []
 
-    def __init__(self, athlete_id=0):
+    def __init__(self):
         self.auths.append(len(self.auths)+1)
         logging.debug(f"Internal auth obj: {self.auths}")
         self.request_count = 0
@@ -92,6 +110,7 @@ class Auth:
             # If caching is enabled for this request, save contents to cache
             if cache:
                 caching.save(cache_identifier, response)
+            logging.debug(f"Requests made via this obj: {self.request_count}")
             return response
         elif _first_attempt and r.status_code == 401:
             logging.warning(f"Status code: {r.status_code}, attempting to refresh auth")

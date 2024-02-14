@@ -29,7 +29,7 @@ if run == 'athlete':
 
 if run == 'map':
     # map.map_months(range(1, 13), year=2023, activity_filter=["Run"])
-    map.map_months(1, year=2024, activity_filter=["Run"])
+    map.map_months(range(1, 3), year=2024, activity_filter=["Run"])
 
 if run == 'activity':
     # a = activity.Activity(ACTIVITY_ID)

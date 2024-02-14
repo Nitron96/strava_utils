@@ -3,7 +3,7 @@ from datetime import date, timedelta
 import folium
 import logging
 
-import activity
+from activity import Activity
 from athlete import Athlete
 from utils.conversions import convert_speed, convert_distance, convert_elevation
 
@@ -60,8 +60,12 @@ class Map:
 def map_months(months, year=2023, activity_filter=None):
     if activity_filter is None:
         activity_filter = []
-    if type(months) is not list:
+    try:
+        iter(months)
+    except TypeError:
         months = [months]
+    # if type(months) is not list:
+    #     months = [months]
     logging.info("getting athlete")
     athlete = Athlete()
     logging.info("got athlete")
@@ -72,7 +76,7 @@ def map_months(months, year=2023, activity_filter=None):
                 activity_list.append(act['id'])
     activities = []
     for a_id in activity_list:
-        activities.append(activity.Activity(a_id))
+        activities.append(Activity(a_id, athlete.id))
     map_obj = Map(activities[0].full_activity['start_latlng'])
     for a in activities:
         # map_obj.add_line(

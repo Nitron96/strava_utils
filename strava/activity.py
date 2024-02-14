@@ -57,8 +57,8 @@ def decode_polyline(polyline):
 
 class Activity(StravaBaseClass):
 
-    def __init__(self, activity_id):
-        super().__init__()
+    def __init__(self, activity_id, athlete_id=0):
+        super().__init__(athlete_id)
         self.id = activity_id
         # self.laps = dict()
         # self.full_activity = dict()

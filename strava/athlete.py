@@ -100,7 +100,10 @@ class Athlete(StravaBaseClass):
                 ACTIVITY_LIST + f"?per_page={ACTIVITIES_PER_PAGE}&page={page_count}&"
                                 f"before={end}&after={start}",
                 # If year and month are different than today's date, we can cache the request
-                cache=(year != date.today().year or month != date.today().month)
+                cache=(year != date.today().year or (
+                        # give or take 1 month
+                        month != date.today().month and month != date.today().month-1 and month != date.today().month+1
+                ))
             )
             activity_count = len(activity_page)  # Don't loop after there are less activities remaining
             activities.extend(activity_page)
