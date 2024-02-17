@@ -41,11 +41,7 @@ class ManageAuth:
 
 class Auth:
 
-    auths = []
-
     def __init__(self):
-        self.auths.append(len(self.auths)+1)
-        logging.debug(f"Internal auth obj: {self.auths}")
         self.request_count = 0
         with open("../auth.json") as f:
             self.tokens = json.load(f)
@@ -89,6 +85,7 @@ class Auth:
         response = json.loads(r.text)
         self.tokens["access_token"] = response["access_token"]
         self.tokens["refresh_token"] = response["refresh_token"]
+        self.tokens["expires_at"] = response["expires_at"]
         self.write_auth()
 
     def get_auth_bearer(self):
