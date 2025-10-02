@@ -12,6 +12,7 @@ STRAVA_ACTIVITY_URL = "https://www.strava.com/activities/{id}"
 
 POPUP_HTML = """
 <h3><a href="{url}" target=”_blank”>{name}</a></h3>
+<h5>{date}</h5>
 <h4>Distance: {distance}</h4>
 <h4>Time: {time}</h4>
 <h4>Pace: {pace}</h4>
@@ -88,13 +89,14 @@ def map_months(months, year=2023, activity_filter=None):
         popup_contents = POPUP_HTML.format(
             url=STRAVA_ACTIVITY_URL.format(id=a.id),
             name=a.name,
+            date=a.start_date_local.date(),
             distance=convert_distance(a.distance),
             time=timedelta(seconds=a.moving_time),
             pace=timedelta(seconds=convert_speed(a.average_speed)),
             elevation=convert_elevation(a.total_elevation_gain)
         )
         if 'latlng' in streams.keys():
-            logging.info(f"  Adding {a.full_activity['name']} to map")
+            logging.info(f"  Adding {a.full_activity['name']} to map ({a.id})")
             map_obj.add_line(
                 streams['latlng']['data'],
                 "#af5800",

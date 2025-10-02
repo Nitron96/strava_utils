@@ -5,7 +5,7 @@ import logging
 from . import strava_cache as caching
 
 
-REQUEST_LIMIT = 10  # Limit to 10 requests to strava api per run to avoid api limits
+REQUEST_LIMIT = 30  # Limit to 30 requests to strava api per run to avoid api limits
 
 AUTHORIZE_URL = "https://www.strava.com/oauth/authorize?client_id={" \
                 "}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&" \
@@ -18,6 +18,14 @@ BASE_URL = "https://www.strava.com/api/v3"
 
 
 class RateLimitError(Exception):
+    pass
+
+
+class InternalRateLimitError(RateLimitError):
+    pass
+
+
+class ExternalRateLimitError(RateLimitError):
     pass
 
 
@@ -43,6 +51,7 @@ class Auth:
 
     def __init__(self):
         self.request_count = 0
+        self.external_rate_limit_hit = False
         with open("../auth.json") as f:
             self.tokens = json.load(f)
 
@@ -98,8 +107,11 @@ class Auth:
         if cache and caching.check(cache_identifier):
             return caching.load(cache_identifier)
         if self.request_count >= REQUEST_LIMIT:
-            logging.error(f"Rate limit hit, throwing exception")
-            raise RateLimitError
+            logging.error(f"Internal rate limit hit, throwing exception")
+            raise InternalRateLimitError
+        if self.external_rate_limit_hit:
+            logging.error(f"External rate limit hit, throwing exception")
+            raise ExternalRateLimitError
         r = requests.get(BASE_URL + api, headers=self.get_auth_bearer())
         if r.status_code == 200:
             self.request_count += 1
@@ -114,7 +126,7 @@ class Auth:
             self.update_access_token()
             return self.get(api, cache, _first_attempt=False)
         elif r.status_code == 429:
-            self.request_count = REQUEST_LIMIT
+            self.external_rate_limit_hit = True
             logging.warning(f"Status code: {r.status_code}, API limits hit\nAPI call:    {api}")
         else:
             logging.error(f"Status code: {r.status_code}\nAPI call:    {api}")

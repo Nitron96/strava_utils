@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 import logging
 from utils.base import StravaBaseClass
 from utils.conversions import convert_speed, convert_distance, convert_elevation
@@ -72,9 +72,9 @@ class Activity(StravaBaseClass):
         self.total_elevation_gain = self.full_activity['total_elevation_gain']
         self.type = self.full_activity['type']
         self.sport_type = self.full_activity['sport_type']  # Probably get rid of this??
-        self.start_date_local = self.full_activity['start_date_local']
+        self.start_date_local = datetime.fromisoformat(self.full_activity['start_date_local'])
         self.average_speed = self.full_activity['average_speed']
-        self.average_heartrate = self.full_activity['average_heartrate']
+        self.average_heartrate = self.full_activity['average_heartrate'] if 'average_heartrate' in self.full_activity else None
         self.description = self.full_activity['description']
         self.similar_activities = self.full_activity['similar_activities']
         self.available_zones = self.full_activity['available_zones']  # No idea what this is yet

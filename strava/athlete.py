@@ -8,7 +8,7 @@ from utils.base import StravaBaseClass
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-GOAL_MILEAGE = 2000
+GOAL_MILEAGE = 2400
 GOAL_DATE = date(date.today().year, 12, 31)
 
 BASE_URL = "https://www.strava.com/api/v3"
@@ -31,7 +31,7 @@ def to_rounded_miles(distance):
 
 
 def distance_str(distance):
-    return f"{to_rounded_miles(distance)} mi ({distance/METER_TO_KM} km)"
+    return f"{to_rounded_miles(distance)} mi ({round(distance/METER_TO_KM, 1)} km)"
 
 
 class Athlete(StravaBaseClass):
